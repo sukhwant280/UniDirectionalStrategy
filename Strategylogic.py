@@ -10,18 +10,22 @@ from getLocationCell import getIndexes
 
 st=time.time()
 
+# files
+inputfile = r'C:\Users\sukhw\OneDrive\Documents\TradingStrategy\files\candledata'
+outputfiles = r'C:\Users\sukhw\OneDrive\Documents\TradingStrategy\files'
+
+
 # month and week numbers
-todayweek = (dt.datetime.today() - dt.timedelta(days=0)).strftime("%V")
+todayweek = dt.datetime.today().weekday()
 todaymonth = (dt.datetime.today() - dt.timedelta(days=0)).strftime("%m")
 today = (dt.datetime.today() - dt.timedelta(days=0)).strftime("%Y-%m-%d")
 
 
-# get the data
+# get the data - Candle file generated from Candledffinal function
 candledffinal = uds_raw_data()
 
-# Candle file generated from Candledffinal function
 # find the latest excel file from the shared drive
-folder_path = r'C:\Users\sukhw\OneDrive\Documents\TradingStrategy\files\candle*'
+folder_path = r'{0}*'.format(inputfile)
 file_type = '*csv'
 files = glob.glob(folder_path + file_type)
 max_file = max(files, key=os.path.getctime)
@@ -56,20 +60,21 @@ for index,row in monthlytickerdf.iterrows():
         monthdf = monthdf.sort_values(by = ['number'], ascending = [False]).reset_index(drop=True)
         # filter rows
         monthdf1 = monthdf.iloc[[1,2,3,4]]
-        
+          
+        monthdf1.reset_index(drop = True, inplace = True)    
         listOfElems = ['green', 'red']
         dictOfPos = {elem: getIndexes(monthdf1, elem) for elem in listOfElems}
         greenaddressdf = pd.json_normalize(dictOfPos,"green")
         redaddressdf = pd.json_normalize(dictOfPos,"red")
         try:
-            radd = redaddressdf.iat[0,0]-1
+            radd = redaddressdf.iat[0,0]
         except:
-            radd = greenaddressdf.iat[0,0]
+            radd = greenaddressdf.iat[0,0]+1
             
         try:
-            gadd = greenaddressdf.iat[0,0]-1
+            gadd = greenaddressdf.iat[0,0]
         except:
-            gadd = redaddressdf.iat[0,0]
+            gadd = redaddressdf.iat[0,0]+1
                 
         # define variables
         name = monthdf1.iat[0,5]
@@ -129,22 +134,26 @@ for index,row in weeklytickerdf.iterrows():
         # sort
         weekdf = weekdf.sort_values(by = ['number'], ascending = [False]).reset_index(drop=True)
         # filter rows
-        weekdf1 = weekdf.iloc[[1,2,3,4]]
-        
+        if todayweek >= 4:
+            weekdf1 = weekdf.iloc[[0,1,2,3,4]]
+        else:
+            weekdf1 = weekdf.iloc[[1,2,3,4]]
+            
+        weekdf1.reset_index(drop = True, inplace = True)    
         listOfElems = ['green', 'red']
         dictOfPos = {elem: getIndexes(weekdf1, elem) for elem in listOfElems}
         greenaddressdf = pd.json_normalize(dictOfPos,"green")
         redaddressdf = pd.json_normalize(dictOfPos,"red")
         try:
-            radd = redaddressdf.iat[0,0]-1
+            radd = redaddressdf.iat[0,0]
         except:
-            radd = greenaddressdf.iat[0,0]
+            radd = greenaddressdf.iat[0,0]+1
             
         try:
-            gadd = greenaddressdf.iat[0,0]-1
+            gadd = greenaddressdf.iat[0,0]
         except:
-            gadd = redaddressdf.iat[0,0]
-
+            gadd = redaddressdf.iat[0,0]+1
+    
             
         # define variables
         name = weekdf1.iat[0,5]
@@ -315,13 +324,17 @@ for index,row in trenddfinal1.iterrows():
 # select bull and bear trend names
 bulldf = logicfinal[(logicfinal['finaltrend'] == 'bull')]
 bulldf.drop(bulldf.columns[[5]], axis=1, inplace=True)
+bulldf = bulldf.sort_values(by = ['name'], ascending = [True]).reset_index(drop=True)
+
 
 beardf = logicfinal[(logicfinal['finaltrend'] == 'bear')]
 beardf.drop(beardf.columns[[6]], axis=1, inplace=True)
+beardf = beardf.sort_values(by = ['name'], ascending = [True]).reset_index(drop=True)
 
 # # # Export the data
-beardf.to_csv (r'C:\Users\sukhw\OneDrive\Documents\TradingStrategy\files\bear_{}.csv'.format(today), index = None, header=True)
-bulldf.to_csv (r'C:\Users\sukhw\OneDrive\Documents\TradingStrategy\files\bull_{}.csv'.format(today), index = None, header=True)
+beardf.to_csv (r'{}\bear_{}.csv'.format(outputfiles,today), index = None, header=True)
+bulldf.to_csv (r'{}\bull_{}.csv'.format(outputfiles,today), index = None, header=True)
+logicfinal.to_csv (r'{}\AllStocksTrends_{}.csv'.format(outputfiles,today), index = None, header=True)
 
 et=time.time()
 print("run time: %g Minutes" % ((et-st)/60))
