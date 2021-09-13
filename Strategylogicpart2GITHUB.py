@@ -21,8 +21,8 @@ outputfiles = r'C:\Users\sukhw\OneDrive\Documents\TradingStrategy\files'
 
 # month and week numbers
 todays_date = datetime.now()
-dateStart = todays_date.replace(hour=9,minute=0)
-dateEnd = todays_date.replace(hour=16,minute=0)
+dateStart = todays_date.replace(hour=9,minute=0).strftime("%Y-%m-%d %H:%M")
+dateEnd = todays_date.replace(hour=16,minute=0).strftime("%Y-%m-%d %H:%M")
 
 todayweek = (dt.datetime.today() - dt.timedelta(days=0)).strftime("%V")
 todaymonth = (dt.datetime.today() - dt.timedelta(days=0)).strftime("%m")
